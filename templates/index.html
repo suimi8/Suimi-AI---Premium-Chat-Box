@@ -244,6 +244,71 @@
             transform: scale(1.05);
         }
 
+        /* 复制按钮样式 */
+        .code-header {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: -10px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 5px;
+            margin-right: 5px;
+        }
+
+        .copy-btn:hover {
+            color: white;
+            background: var(--accent);
+        }
+
+        /* 思考状态样式 */
+        .thinking-bubble {
+            display: flex;
+            gap: 4px;
+            padding: 10px;
+        }
+
+        .thinking-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        .thinking-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .thinking-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0.6);
+                opacity: 0.5;
+            }
+
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -263,6 +328,11 @@
         <div class="config-group"><label>Model</label><input type="text" id="model-name" value="z-ai/glm4.7"></div>
         <div class="config-group"><label>System Prompt</label><textarea id="system-prompt"
                 rows="4">你是一个支持 Markdown、代码、公式、图片和 Mermaid 图表的超能助手。</textarea></div>
+
+        <button id="new-chat-btn"
+            style="margin-top: 1rem; background: var(--glass); border: 1px solid var(--accent); color: white; padding: 0.8rem; border-radius: 12px; cursor: pointer; transition: 0.3s;">
+            ✨ 开启新对话
+        </button>
     </div>
 
     <div class="main-chat">
@@ -300,6 +370,7 @@
         const chatWindow = document.getElementById('chat-window');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
+        const newChatBtn = document.getElementById('new-chat-btn');
         let messageHistory = [];
 
         function appendMessage(role, content) {
@@ -337,6 +408,25 @@
                 mermaid.render(mermaidId + '-svg', chart).then(({ svg }) => {
                     container.innerHTML = svg;
                 });
+            });
+
+            // 添加复制按钮
+            div.querySelectorAll('pre').forEach(pre => {
+                if (pre.querySelector('.code-header')) return;
+
+                const header = document.createElement('div');
+                header.className = 'code-header';
+                const btn = document.createElement('button');
+                btn.className = 'copy-btn';
+                btn.textContent = 'Copy';
+                btn.onclick = () => {
+                    const code = pre.querySelector('code').innerText;
+                    navigator.clipboard.writeText(code);
+                    btn.textContent = 'Done!';
+                    setTimeout(() => btn.textContent = 'Copy', 2000);
+                };
+                header.appendChild(btn);
+                pre.prepend(header);
             });
         }
 
@@ -399,6 +489,14 @@
         sendBtn.addEventListener('click', sendMessage);
         userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
         userInput.addEventListener('input', function () { this.style.height = 'auto'; this.style.height = (this.scrollHeight) + 'px'; });
+
+        // 新对话功能
+        newChatBtn.addEventListener('click', () => {
+            if (confirm('确定要清除当前对话吗？')) {
+                messageHistory = [];
+                chatWindow.innerHTML = '<div class="message ai-message">对话已重置。我是你的 Ultra 版 AI 助手，请问有什么可以帮您？</div>';
+            }
+        });
     </script>
 </body>
 
