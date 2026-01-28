@@ -68,6 +68,7 @@
             font-weight: 600;
             background: linear-gradient(135deg, #fff 0%, #a78bfa 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 1rem;
         }
@@ -244,6 +245,16 @@
             transform: scale(1.05);
         }
 
+        #send-btn.stop-mode {
+            background: #ef4444;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+        }
+
+        #user-input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         /* 复制按钮样式 */
         .code-header {
             display: flex;
@@ -400,6 +411,8 @@
         const sendBtn = document.getElementById('send-btn');
         const newChatBtn = document.getElementById('new-chat-btn');
         let messageHistory = [];
+        let isGenerating = false;
+        let abortController = null;
 
         function appendMessage(role, content) {
             const div = document.createElement('div');
@@ -410,14 +423,13 @@
             return div;
         }
 
-        function updateMessageContent(div, content) {
+        function updateMessageContent(div, content, isFinal = false) {
             // 解析 <think> 标签逻辑
             let processedContent = content;
             const thinkMatch = content.match(/<think>([\s\S]*?)<\/think>/);
             const isThinkingUnfinished = content.includes('<think>') && !content.includes('</think>');
 
             if (thinkMatch) {
-                // 已完成的思考
                 const thought = thinkMatch[1].trim();
                 const rest = content.replace(/<think>[\s\S]*?<\/think>/, '').trim();
                 processedContent = `
@@ -425,10 +437,9 @@
                         <div class="thought-header">🧠 思考过程</div>
                         <div class="thought-content">${marked.parse(thought)}</div>
                     </div>
-                    ${rest}
+                    ${marked.parse(rest)}
                 `;
             } else if (isThinkingUnfinished) {
-                // 正在进行的思考
                 const thought = content.split('<think>')[1];
                 processedContent = `
                     <div class="thought-container">
@@ -436,14 +447,11 @@
                         <div class="thought-content">${marked.parse(thought + '...')}</div>
                     </div>
                 `;
+            } else {
+                processedContent = marked.parse(content);
             }
 
-            // 处理 Markdown 渲染 (如果不是思考中，或者处理剩余部分)
-            if (!isThinkingUnfinished && !thinkMatch) {
-                div.innerHTML = marked.parse(content);
-            } else {
-                div.innerHTML = processedContent;
-            }
+            div.innerHTML = processedContent;
 
             // 处理数学公式
             renderMathInElement(div, {
@@ -454,19 +462,29 @@
                 throwOnError: false
             });
 
-            // 处理 Mermaid 图表
-            const mermaidDivs = div.querySelectorAll('pre code.language-mermaid');
-            mermaidDivs.forEach(m => {
+            // 处理 Mermaid 图表 (仅在结束或包含闭合标签且暂无语法错误提示时尝试渲染)
+            const mermaidCodes = div.querySelectorAll('pre code.language-mermaid');
+            mermaidCodes.forEach(m => {
                 const p = m.parentElement;
-                const chart = m.textContent;
-                const mermaidId = 'mermaid-' + Math.random().toString(36).substr(2, 9);
-                const container = document.createElement('div');
-                container.className = 'mermaid';
-                container.id = mermaidId;
-                p.parentNode.replaceChild(container, p);
-                mermaid.render(mermaidId + '-svg', chart).then(({ svg }) => {
-                    container.innerHTML = svg;
-                });
+                const chart = m.textContent.trim();
+
+                // 为了防止流式输出时的语法错误提示，仅在内容较完整或最终状态时渲染
+                if (isFinal || (chart.split('\n').length > 2 && !isThinkingUnfinished)) {
+                    const mermaidId = 'mermaid-' + Math.random().toString(36).substr(2, 9);
+                    const container = document.createElement('div');
+                    container.className = 'mermaid';
+                    container.id = mermaidId;
+
+                    try {
+                        p.parentNode.replaceChild(container, p);
+                        mermaid.render(mermaidId + '-svg', chart).then(({ svg }) => {
+                            container.innerHTML = svg;
+                        }).catch(err => {
+                            // 渲染失败时回退回代码块，避免显示炸弹图标
+                            container.innerHTML = `<pre><code>${chart}</code></pre>`;
+                        });
+                    } catch (e) { }
+                }
             });
 
             // 添加复制按钮
@@ -490,9 +508,20 @@
         }
 
         async function sendMessage() {
+            if (isGenerating) {
+                if (abortController) abortController.abort();
+                return;
+            }
+
             const text = userInput.value.trim();
             if (!text) return;
-            userInput.value = ''; userInput.style.height = 'auto';
+
+            isGenerating = true;
+            toggleLoadingState(true);
+            abortController = new AbortController();
+
+            userInput.value = '';
+            userInput.style.height = 'auto';
 
             if (messageHistory.length === 0) {
                 messageHistory.push({ role: 'system', content: document.getElementById('system-prompt').value });
@@ -514,7 +543,8 @@
                             baseUrl: document.getElementById('base-url').value,
                             model: document.getElementById('model-name').value
                         }
-                    })
+                    }),
+                    signal: abortController.signal
                 });
 
                 const reader = response.body.getReader();
@@ -528,21 +558,39 @@
                         if (line.startsWith('data: ')) {
                             const dataStr = line.slice(6);
                             if (dataStr === '[DONE]') break;
-                            const data = JSON.parse(dataStr);
-                            if (data.content) {
-                                fullContent += data.content;
-                                updateMessageContent(aiDiv, fullContent);
-                                chatWindow.scrollTop = chatWindow.scrollHeight;
-                            }
+                            try {
+                                const data = JSON.parse(dataStr);
+                                if (data.content) {
+                                    fullContent += data.content;
+                                    updateMessageContent(aiDiv, fullContent);
+                                    chatWindow.scrollTop = chatWindow.scrollHeight;
+                                }
+                            } catch (e) { }
                         }
                     }
                 }
                 messageHistory.push({ role: 'assistant', content: fullContent });
-                // 最终渲染一次，确保全图表加载
-                updateMessageContent(aiDiv, fullContent);
+                updateMessageContent(aiDiv, fullContent, true);
             } catch (e) {
-                aiDiv.textContent = '❌ 错误: ' + e.message;
+                if (e.name === 'AbortError') {
+                    aiDiv.innerHTML += ' <br><br><i>[对话已中止]</i>';
+                    messageHistory.push({ role: 'assistant', content: fullContent + ' [对话已中止]' });
+                } else {
+                    aiDiv.textContent = '❌ 错误: ' + e.message;
+                }
+            } finally {
+                isGenerating = false;
+                toggleLoadingState(false);
+                abortController = null;
             }
+        }
+
+        function toggleLoadingState(loading) {
+            sendBtn.classList.toggle('stop-mode', loading);
+            userInput.disabled = loading;
+            sendBtn.innerHTML = loading ?
+                '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>' :
+                '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" /></svg>';
         }
 
         sendBtn.addEventListener('click', sendMessage);
