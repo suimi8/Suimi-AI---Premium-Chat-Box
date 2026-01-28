@@ -5,13 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Suimi AI - Ultra Pro</title>
-    <!-- 引入外部样式和脚本 -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Inter:wght@400;500&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/styles/github-dark.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-
-    <!-- 核心渲染脚本 -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/lib/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
@@ -39,9 +36,7 @@
 
         body {
             background: var(--bg);
-            background-image:
-                radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.1) 0px, transparent 50%);
+            background-image: radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.1) 0px, transparent 50%);
             color: var(--text-main);
             font-family: 'Inter', sans-serif;
             height: 100vh;
@@ -49,56 +44,91 @@
             overflow: hidden;
         }
 
-        /* Sidebar */
+        /* Sidebar & History */
         .sidebar {
-            width: 320px;
+            width: 300px;
             background: var(--sidebar-bg);
             backdrop-filter: blur(20px);
             border-right: 1px solid var(--border);
-            padding: 2rem;
+            padding: 1.5rem;
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1rem;
             z-index: 10;
         }
 
         .logo {
             font-family: 'Outfit', sans-serif;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 600;
             background: linear-gradient(135deg, #fff 0%, #a78bfa 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 1rem;
         }
 
-        .config-group {
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
+            margin-top: 1rem;
         }
 
-        label {
+        .history-item {
+            padding: 0.8rem;
+            border-radius: 10px;
+            background: var(--glass);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.85rem;
             color: var(--text-dim);
-            font-size: 0.8rem;
-            font-weight: 500;
-            text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .history-item.active {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .delete-session {
+            opacity: 0;
+            transition: 0.2s;
+            color: #ef4444;
+        }
+
+        .history-item:hover .delete-session {
+            opacity: 1;
+        }
+
+        .config-area {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
         }
 
         input,
         textarea {
             background: var(--glass);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 0.8rem;
+            border-radius: 10px;
+            padding: 0.6rem;
             color: white;
-            transition: all 0.3s ease;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--accent);
+            font-size: 0.8rem;
         }
 
         /* Main Chat Area */
@@ -119,7 +149,6 @@
             scroll-behavior: smooth;
         }
 
-        /* Message Styling - Markdown Friendly */
         .message {
             max-width: 90%;
             padding: 1.25rem;
@@ -144,62 +173,54 @@
             border-bottom-left-radius: 4px;
         }
 
-        /* Markdown Overrides */
-        .ai-message pre {
-            background: #1e293b;
-            padding: 1rem;
-            border-radius: 12px;
-            overflow-x: auto;
-            margin: 1rem 0;
-        }
-
-        .ai-message code {
-            font-family: 'Fira Code', monospace;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 0.2rem 0.4rem;
-            border-radius: 4px;
-        }
-
-        .ai-message img {
-            max-width: 100%;
-            border-radius: 10px;
-            margin: 1rem 0;
-        }
-
-        .ai-message table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0;
-        }
-
-        .ai-message th,
-        .ai-message td {
-            border: 1px solid var(--border);
-            padding: 0.75rem;
-            text-align: left;
-        }
-
-        .ai-message blockquote {
-            border-left: 4px solid var(--accent);
-            padding-left: 1rem;
+        /* Thought Process (Collapsible) */
+        .thought-container {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 2px solid var(--accent);
+            margin: 0.5rem 0 1rem 0;
+            padding: 0.8rem 1rem;
+            border-radius: 0 12px 12px 0;
+            font-size: 0.85rem;
             color: var(--text-dim);
-            margin: 1rem 0;
         }
 
-        /* Mermaid Overrides */
-        .mermaid {
-            background: white;
-            border-radius: 10px;
-            padding: 1rem;
-            margin: 1rem 0;
-            width: 100%;
+        .thought-header {
             display: flex;
-            justify-content: center;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+            color: var(--accent);
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
         }
 
-        /* Input Bar */
+        .thought-header::after {
+            content: '收起 ▲';
+            opacity: 0.6;
+        }
+
+        .thought-container.collapsed .thought-header::after {
+            content: '展开 ▼';
+        }
+
+        .thought-container.collapsed .thought-content {
+            display: none;
+        }
+
+        .final-response-header {
+            font-weight: 600;
+            color: var(--accent);
+            margin-top: 1rem;
+            padding-bottom: 0.4rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
+        }
+
+        /* Input */
         .input-container {
             padding: 2rem;
+            background: linear-gradient(to top, var(--bg) 80%, transparent);
         }
 
         .input-wrapper {
@@ -241,83 +262,8 @@
             margin-right: 5px;
         }
 
-        #send-btn:hover {
-            transform: scale(1.05);
-        }
-
         #send-btn.stop-mode {
             background: #ef4444;
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
-        }
-
-        #user-input:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* 复制按钮样式 */
-        .code-header {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: -10px;
-            position: relative;
-            z-index: 5;
-        }
-
-        .copy-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--border);
-            color: var(--text-dim);
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            cursor: pointer;
-            transition: 0.2s;
-            margin-bottom: 5px;
-            margin-right: 5px;
-        }
-
-        .copy-btn:hover {
-            color: white;
-            background: var(--accent);
-        }
-
-        /* 思考状态样式 */
-        .thinking-bubble {
-            display: flex;
-            gap: 4px;
-            padding: 10px;
-        }
-
-        .thinking-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--accent);
-            border-radius: 50%;
-            animation: pulse 1.5s infinite ease-in-out;
-        }
-
-        .thinking-dot:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .thinking-dot:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            80%,
-            100% {
-                transform: scale(0.6);
-                opacity: 0.5;
-            }
-
-            40% {
-                transform: scale(1);
-                opacity: 1;
-            }
         }
 
         @keyframes fadeIn {
@@ -326,96 +272,34 @@
                 transform: translateY(10px);
             }
         }
-
-        /* 深度思考 (Thinking Process) 样式 */
-        .thought-container {
-            background: rgba(255, 255, 255, 0.03);
-            border-left: 2px solid var(--accent);
-            margin: 0.5rem 0 1rem 0;
-            padding: 0.8rem 1rem;
-            border-radius: 0 12px 12px 0;
-            font-size: 0.85rem;
-            color: var(--text-dim);
-            transition: all 0.3s ease;
-        }
-
-        .thought-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 6px;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--accent);
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .thought-header:hover {
-            opacity: 0.8;
-        }
-
-        .thought-header::after {
-            content: '收起 ▲';
-            font-size: 0.7rem;
-            opacity: 0.6;
-        }
-
-        .thought-container.collapsed .thought-header::after {
-            content: '展开 ▼';
-        }
-
-        .thought-container.collapsed .thought-content {
-            display: none;
-        }
-
-        .thought-content {
-            font-style: italic;
-            line-height: 1.5;
-        }
-
-        .final-response-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 1.5rem 0 0.8rem 0;
-            font-weight: 600;
-            color: var(--text-main);
-            font-size: 0.9rem;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 0.5rem;
-        }
     </style>
 </head>
 
 <body>
     <div class="sidebar">
-        <div class="logo">Suimi AI Ultra</div>
-        <div class="config-group"><label>API Key</label><input type="password" id="api-key"
-                value="sk-Pm1QrbebH0niJ8IUJHyIuI0qvWUjcsZbfzpXiGJL8A6a69I3"></div>
-        <div class="config-group"><label>Base URL</label><input type="text" id="base-url"
-                value="https://suimi-api.zeabur.app/v1"></div>
-        <div class="config-group"><label>Model</label><input type="text" id="model-name" value="z-ai/glm4.7"></div>
-        <div class="config-group"><label>System Prompt</label><textarea id="system-prompt"
-                rows="4">你是一个支持 Markdown、代码、公式、图片和 Mermaid 图表的超能助手。</textarea></div>
+        <div class="logo">Suimi AI History</div>
 
         <button id="new-chat-btn"
-            style="margin-top: 1rem; background: var(--glass); border: 1px solid var(--accent); color: white; padding: 0.8rem; border-radius: 12px; cursor: pointer; transition: 0.3s;">
-            ✨ 开启新对话
+            style="background: var(--accent); color: white; border: none; padding: 0.8rem; border-radius: 12px; cursor: pointer; font-weight: 600;">
+            + 开启新对话
         </button>
+
+        <div class="history-list" id="history-sessions">
+            <!-- 历史记录动态加载 -->
+        </div>
+
+        <div class="config-area">
+            <label style="font-size: 0.7rem; color: var(--text-dim);">API 设置</label>
+            <input type="password" id="api-key" placeholder="API Key"
+                value="sk-Pm1QrbebH0niJ8IUJHyIuI0qvWUjcsZbfzpXiGJL8A6a69I3">
+            <input type="text" id="base-url" placeholder="Base URL" value="https://suimi-api.zeabur.app/v1">
+            <input type="text" id="model-name" placeholder="Model" value="z-ai/glm4.7">
+        </div>
     </div>
 
     <div class="main-chat">
         <div id="chat-window">
-            <div class="message ai-message">你好！我是 Ultra 版 AI 助手。我支持以下渲染：<br>
-                ✅ **Markdown** 内容<br>
-                ✅ **代码高亮** (Python, JS, etc.)<br>
-                ✅ **LaTeX 公式** $E = mc^2$<br>
-                ✅ **Mermaid 流程图**<br>
-                ✅ **图片展示**</div>
+            <div class="message ai-message">你好！我是已支持历史记录持久化的 AI 助手。</div>
         </div>
         <div class="input-container">
             <div class="input-wrapper">
@@ -423,7 +307,7 @@
                 <button id="send-btn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2.5">
-                        <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+                        <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>
                     </svg>
                 </button>
             </div>
@@ -431,143 +315,119 @@
     </div>
 
     <script>
-        // 配置 Marked.js
-        marked.setOptions({
-            highlight: function (code, lang) {
-                const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-                return hljs.highlight(code, { language }).value;
-            },
-            langPrefix: 'hljs language-'
-        });
+        marked.setOptions({ highlight: (code, lang) => hljs.highlight(code, { language: hljs.getLanguage(lang) ? lang : 'plaintext' }).value, langPrefix: 'hljs language-' });
 
         const chatWindow = document.getElementById('chat-window');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
-        const newChatBtn = document.getElementById('new-chat-btn');
+        const historyList = document.getElementById('history-sessions');
+
+        let currentSessionId = localStorage.getItem('lastSessionId') || Date.now().toString();
         let messageHistory = [];
         let isGenerating = false;
         let abortController = null;
 
-        function appendMessage(role, content) {
+        // --- 初始化 & 加载历史列表 ---
+        async function loadSessions() {
+            const res = await fetch('/api/sessions');
+            const sessions = await res.json();
+            historyList.innerHTML = '';
+            sessions.forEach(s => {
+                const item = document.createElement('div');
+                item.className = `history-item ${s.id === currentSessionId ? 'active' : ''}`;
+                item.innerHTML = `
+                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${s.title}</span>
+                    <span class="delete-session" onclick="event.stopPropagation(); deleteSession('${s.id}')">✕</span>
+                `;
+                item.onclick = () => switchSession(s.id);
+                historyList.appendChild(item);
+            });
+        }
+
+        async function switchSession(sid) {
+            if (isGenerating) return;
+            currentSessionId = sid;
+            localStorage.setItem('lastSessionId', sid);
+            loadSessions();
+
+            chatWindow.innerHTML = '<div class="message ai-message">加载中...</div>';
+            const res = await fetch(`/api/messages/${sid}`);
+            messageHistory = await res.json();
+
+            chatWindow.innerHTML = '';
+            if (messageHistory.length === 0) {
+                chatWindow.innerHTML = '<div class="message ai-message">新会话已准备就绪。</div>';
+            } else {
+                messageHistory.forEach(m => appendMessage(m.role, m.content, false));
+            }
+        }
+
+        async function deleteSession(sid) {
+            if (confirm('确定删除此段对话吗？')) {
+                await fetch(`/api/sessions/${sid}`, { method: 'DELETE' });
+                if (sid === currentSessionId) {
+                    currentSessionId = Date.now().toString();
+                    switchSession(currentSessionId);
+                } else {
+                    loadSessions();
+                }
+            }
+        }
+
+        document.getElementById('new-chat-btn').onclick = () => {
+            const sid = Date.now().toString();
+            switchSession(sid);
+        };
+
+        function appendMessage(role, content, saveToHistory = true) {
             const div = document.createElement('div');
             div.className = `message ${role === 'user' ? 'user-message' : 'ai-message'}`;
             chatWindow.appendChild(div);
-            updateMessageContent(div, content);
+            updateMessageContent(div, content, true);
             chatWindow.scrollTop = chatWindow.scrollHeight;
             return div;
         }
 
         function updateMessageContent(div, content, isFinal = false) {
-            // 解析 <think> 标签逻辑
-            let processedContent = content;
+            let processed = content;
             const thinkMatch = content.match(/<think>([\s\S]*?)<\/think>/);
             const isThinkingUnfinished = content.includes('<think>') && !content.includes('</think>');
 
             if (thinkMatch) {
-                const thought = thinkMatch[1].trim();
-                const rest = content.replace(/<think>[\s\S]*?<\/think>/, '').trim();
-                processedContent = `
-                    <div class="thought-container" id="thought-${Math.random().toString(36).substr(2, 5)}">
-                        <div class="thought-header" onclick="this.parentElement.classList.toggle('collapsed')">
-                            <span>🧠 思考过程</span>
-                        </div>
-                        <div class="thought-content">${marked.parse(thought)}</div>
-                    </div>
-                    ${rest ? `<div class="final-response-header">📝 AI 最终回复</div>` + marked.parse(rest) : ''}
-                `;
+                processed = `<div class="thought-container"><div class="thought-header" onclick="this.parentElement.classList.toggle('collapsed')"><span>🧠 思考过程</span></div><div class="thought-content">${marked.parse(thinkMatch[1])}</div></div><div class="final-response-header">📝 AI 核心回复</div>${marked.parse(content.replace(/<think>[\s\S]*?<\/think>/, ''))}`;
             } else if (isThinkingUnfinished) {
-                const thought = content.split('<think>')[1];
-                processedContent = `
-                    <div class="thought-container">
-                        <div class="thought-header">
-                            <span>🧠 正在思考...</span>
-                        </div>
-                        <div class="thought-content">${marked.parse(thought + '...')}</div>
-                    </div>
-                `;
+                processed = `<div class="thought-container"><div class="thought-header"><span>🧠 正在思考...</span></div><div class="thought-content">${marked.parse(content.split('<think>')[1] + '...')}</div></div>`;
             } else {
-                processedContent = marked.parse(content);
+                processed = marked.parse(content);
             }
-
-            div.innerHTML = processedContent;
-
-            // 处理数学公式
-            renderMathInElement(div, {
-                delimiters: [
-                    { left: '$$', right: '$$', display: true },
-                    { left: '$', right: '$', display: false }
-                ],
-                throwOnError: false
-            });
-
-            // 处理 Mermaid 图表 (仅在结束或包含闭合标签且暂无语法错误提示时尝试渲染)
-            const mermaidCodes = div.querySelectorAll('pre code.language-mermaid');
-            mermaidCodes.forEach(m => {
-                const p = m.parentElement;
-                const chart = m.textContent.trim();
-
-                // 为了防止流式输出时的语法错误提示，仅在内容较完整或最终状态时渲染
-                if (isFinal || (chart.split('\n').length > 2 && !isThinkingUnfinished)) {
-                    const mermaidId = 'mermaid-' + Math.random().toString(36).substr(2, 9);
-                    const container = document.createElement('div');
-                    container.className = 'mermaid';
-                    container.id = mermaidId;
-
-                    try {
-                        p.parentNode.replaceChild(container, p);
-                        mermaid.render(mermaidId + '-svg', chart).then(({ svg }) => {
-                            container.innerHTML = svg;
-                        }).catch(err => {
-                            // 渲染失败时回退回代码块，避免显示炸弹图标
-                            container.innerHTML = `<pre><code>${chart}</code></pre>`;
-                        });
-                    } catch (e) { }
-                }
-            });
-
-            // 添加复制按钮
+            div.innerHTML = processed;
+            renderMathInElement(div, { delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }], throwOnError: false });
+            // 复制按钮逻辑...
             div.querySelectorAll('pre').forEach(pre => {
-                if (pre.querySelector('.code-header')) return;
-
-                const header = document.createElement('div');
-                header.className = 'code-header';
-                const btn = document.createElement('button');
-                btn.className = 'copy-btn';
-                btn.textContent = 'Copy';
-                btn.onclick = () => {
-                    const code = pre.querySelector('code').innerText;
-                    navigator.clipboard.writeText(code);
-                    btn.textContent = 'Done!';
-                    setTimeout(() => btn.textContent = 'Copy', 2000);
-                };
-                header.appendChild(btn);
-                pre.prepend(header);
+                if (pre.querySelector('.copy-btn')) return;
+                const btn = document.createElement('button'); btn.className = 'copy-btn'; btn.style = "position:absolute; top:5px; right:5px; padding:2px 8px; font-size:10px; cursor:pointer;"; btn.textContent = 'Copy';
+                btn.onclick = () => { navigator.clipboard.writeText(pre.innerText); btn.textContent = 'Done!'; setTimeout(() => btn.textContent = 'Copy', 1500); };
+                pre.style.position = 'relative'; pre.appendChild(btn);
             });
         }
 
         async function sendMessage() {
-            if (isGenerating) {
-                if (abortController) abortController.abort();
-                return;
-            }
-
+            if (isGenerating) { abortController.abort(); return; }
             const text = userInput.value.trim();
             if (!text) return;
 
             isGenerating = true;
-            toggleLoadingState(true);
+            toggleState(true);
             abortController = new AbortController();
 
-            userInput.value = '';
-            userInput.style.height = 'auto';
+            const sysPrompt = document.getElementById('system-prompt')?.value || '你是一个专业的AI助手。';
+            if (messageHistory.length === 0) messageHistory.push({ role: 'system', content: sysPrompt });
 
-            if (messageHistory.length === 0) {
-                messageHistory.push({ role: 'system', content: document.getElementById('system-prompt').value });
-            }
             messageHistory.push({ role: 'user', content: text });
-            appendMessage('user', text);
+            appendMessage('user', text, false);
+            userInput.value = ''; userInput.style.height = 'auto';
 
-            const aiDiv = appendMessage('assistant', '思考中...');
+            const aiDiv = appendMessage('assistant', '...', false);
             let fullContent = '';
 
             try {
@@ -576,11 +436,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         messages: messageHistory,
-                        config: {
-                            apiKey: document.getElementById('api-key').value,
-                            baseUrl: document.getElementById('base-url').value,
-                            model: document.getElementById('model-name').value
-                        }
+                        sessionId: currentSessionId,
+                        config: { apiKey: document.getElementById('api-key').value, baseUrl: document.getElementById('base-url').value, model: document.getElementById('model-name').value }
                     }),
                     signal: abortController.signal
                 });
@@ -594,54 +451,29 @@
                     const lines = chunk.split('\n');
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
-                            const dataStr = line.slice(6);
-                            if (dataStr === '[DONE]') break;
-                            try {
-                                const data = JSON.parse(dataStr);
-                                if (data.content) {
-                                    fullContent += data.content;
-                                    updateMessageContent(aiDiv, fullContent);
-                                    chatWindow.scrollTop = chatWindow.scrollHeight;
-                                }
-                            } catch (e) { }
+                            const data = JSON.parse(line.slice(6));
+                            if (data.content) { fullContent += data.content; updateMessageContent(aiDiv, fullContent); chatWindow.scrollTop = chatWindow.scrollHeight; }
                         }
                     }
                 }
                 messageHistory.push({ role: 'assistant', content: fullContent });
-                updateMessageContent(aiDiv, fullContent, true);
+                loadSessions(); // 刷新侧边栏标题
             } catch (e) {
-                if (e.name === 'AbortError') {
-                    aiDiv.innerHTML += ' <br><br><i>[对话已中止]</i>';
-                    messageHistory.push({ role: 'assistant', content: fullContent + ' [对话已中止]' });
-                } else {
-                    aiDiv.textContent = '❌ 错误: ' + e.message;
-                }
+                if (e.name === 'AbortError') aiDiv.innerHTML += ' [已中止]';
             } finally {
                 isGenerating = false;
-                toggleLoadingState(false);
-                abortController = null;
+                toggleState(false);
             }
         }
 
-        function toggleLoadingState(loading) {
+        function toggleState(loading) {
             sendBtn.classList.toggle('stop-mode', loading);
-            userInput.disabled = loading;
-            sendBtn.innerHTML = loading ?
-                '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>' :
-                '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" /></svg>';
+            sendBtn.innerHTML = loading ? '终止' : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path></svg>';
         }
 
-        sendBtn.addEventListener('click', sendMessage);
-        userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
-        userInput.addEventListener('input', function () { this.style.height = 'auto'; this.style.height = (this.scrollHeight) + 'px'; });
-
-        // 新对话功能
-        newChatBtn.addEventListener('click', () => {
-            if (confirm('确定要清除当前对话吗？')) {
-                messageHistory = [];
-                chatWindow.innerHTML = '<div class="message ai-message">对话已重置。我是你的 Ultra 版 AI 助手，请问有什么可以帮您？</div>';
-            }
-        });
+        userInput.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
+        sendBtn.onclick = sendMessage;
+        loadSessions().then(() => switchSession(currentSessionId));
     </script>
 </body>
 
