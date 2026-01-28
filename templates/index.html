@@ -315,6 +315,34 @@
                 transform: translateY(10px);
             }
         }
+
+        /* 深度思考 (Thinking Process) 样式 */
+        .thought-container {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 2px solid var(--accent);
+            margin: 0.5rem 0 1rem 0;
+            padding: 0.8rem 1rem;
+            border-radius: 0 12px 12px 0;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .thought-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .thought-content {
+            font-style: italic;
+            line-height: 1.5;
+        }
     </style>
 </head>
 
@@ -383,8 +411,39 @@
         }
 
         function updateMessageContent(div, content) {
-            // 处理 Markdown 渲染
-            div.innerHTML = marked.parse(content);
+            // 解析 <think> 标签逻辑
+            let processedContent = content;
+            const thinkMatch = content.match(/<think>([\s\S]*?)<\/think>/);
+            const isThinkingUnfinished = content.includes('<think>') && !content.includes('</think>');
+
+            if (thinkMatch) {
+                // 已完成的思考
+                const thought = thinkMatch[1].trim();
+                const rest = content.replace(/<think>[\s\S]*?<\/think>/, '').trim();
+                processedContent = `
+                    <div class="thought-container">
+                        <div class="thought-header">🧠 思考过程</div>
+                        <div class="thought-content">${marked.parse(thought)}</div>
+                    </div>
+                    ${rest}
+                `;
+            } else if (isThinkingUnfinished) {
+                // 正在进行的思考
+                const thought = content.split('<think>')[1];
+                processedContent = `
+                    <div class="thought-container">
+                        <div class="thought-header">🧠 正在思考...</div>
+                        <div class="thought-content">${marked.parse(thought + '...')}</div>
+                    </div>
+                `;
+            }
+
+            // 处理 Markdown 渲染 (如果不是思考中，或者处理剩余部分)
+            if (!isThinkingUnfinished && !thinkMatch) {
+                div.innerHTML = marked.parse(content);
+            } else {
+                div.innerHTML = processedContent;
+            }
 
             // 处理数学公式
             renderMathInElement(div, {
