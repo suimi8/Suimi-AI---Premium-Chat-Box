@@ -1,10 +1,23 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suimi AI - Premium Chat Box</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <title>Suimi AI - Ultra Pro</title>
+    <!-- 引入外部样式和脚本 -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Inter:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/styles/github-dark.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+
+    <!-- 核心渲染脚本 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/lib/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.2.4/dist/mermaid.min.js"></script>
+
     <style>
         :root {
             --bg: #0f172a;
@@ -18,10 +31,15 @@
             --border: rgba(255, 255, 255, 0.1);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             background: var(--bg);
-            background-image: 
+            background-image:
                 radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
                 radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.1) 0px, transparent 50%);
             color: var(--text-main);
@@ -31,7 +49,7 @@
             overflow: hidden;
         }
 
-        /* Sidebar - Config Area */
+        /* Sidebar */
         .sidebar {
             width: 320px;
             background: var(--sidebar-bg);
@@ -60,17 +78,27 @@
             gap: 0.5rem;
         }
 
-        label { color: var(--text-dim); font-size: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
-        input, textarea, select {
+        label {
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        input,
+        textarea {
             background: var(--glass);
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 0.8rem;
             color: white;
-            font-family: inherit;
             transition: all 0.3s ease;
         }
-        input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
 
         /* Main Chat Area */
         .main-chat {
@@ -86,20 +114,20 @@
             padding: 2rem;
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 2rem;
             scroll-behavior: smooth;
         }
 
+        /* Message Styling - Markdown Friendly */
         .message {
-            max-width: 85%;
-            padding: 1rem 1.25rem;
+            max-width: 90%;
+            padding: 1.25rem;
             border-radius: 20px;
-            line-height: 1.6;
             position: relative;
             animation: fadeIn 0.3s ease;
+            font-size: 0.95rem;
+            line-height: 1.7;
         }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } }
 
         .user-message {
             align-self: flex-end;
@@ -112,26 +140,76 @@
             align-self: flex-start;
             background: var(--glass);
             border: 1px solid var(--border);
-            color: var(--text-main);
             border-bottom-left-radius: 4px;
+        }
+
+        /* Markdown Overrides */
+        .ai-message pre {
+            background: #1e293b;
+            padding: 1rem;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .ai-message code {
+            font-family: 'Fira Code', monospace;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+        }
+
+        .ai-message img {
+            max-width: 100%;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+
+        .ai-message table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .ai-message th,
+        .ai-message td {
+            border: 1px solid var(--border);
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .ai-message blockquote {
+            border-left: 4px solid var(--accent);
+            padding-left: 1rem;
+            color: var(--text-dim);
+            margin: 1rem 0;
+        }
+
+        /* Mermaid Overrides */
+        .mermaid {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
         }
 
         /* Input Bar */
         .input-container {
             padding: 2rem;
-            background: linear-gradient(to top, var(--bg) 80%, transparent);
         }
 
         .input-wrapper {
             max-width: 900px;
             margin: 0 auto;
-            position: relative;
             background: var(--glass);
             border: 1px solid var(--border);
             border-radius: 20px;
             padding: 0.5rem;
             display: flex;
-            align-items: center;
+            align-items: flex-end;
             backdrop-filter: blur(10px);
         }
 
@@ -157,167 +235,171 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: 0.2s;
+            margin-bottom: 5px;
+            margin-right: 5px;
         }
-        #send-btn:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent-glow); }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        #send-btn:hover {
+            transform: scale(1.05);
+        }
 
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
-        .online { background: #10b981; box-shadow: 0 0 10px #10b981; }
-
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="sidebar">
-        <div class="logo">Suimi AI Pro</div>
-        
-        <div class="config-group">
-            <label>API Key</label>
-            <input type="password" id="api-key" placeholder="sk-..." value="sk-Pm1QrbebH0niJ8IUJHyIuI0qvWUjcsZbfzpXiGJL8A6a69I3">
-        </div>
-
-        <div class="config-group">
-            <label>Base URL</label>
-            <input type="text" id="base-url" placeholder="https://..." value="https://suimi-api.zeabur.app/v1">
-        </div>
-
-        <div class="config-group">
-            <label>Model</label>
-            <input type="text" id="model-name" placeholder="z-ai/glm4.7" value="z-ai/glm4.7">
-        </div>
-
-        <div class="config-group">
-            <label>System Prompt</label>
-            <textarea id="system-prompt" rows="4">你是一个聪明且博学的AI助手。</textarea>
-        </div>
-
-        <div style="margin-top: auto; font-size: 0.8rem; color: var(--text-dim);">
-            <span class="status-dot online"></span> Zeabur Cloud Deployment
-        </div>
+        <div class="logo">Suimi AI Ultra</div>
+        <div class="config-group"><label>API Key</label><input type="password" id="api-key"
+                value="sk-Pm1QrbebH0niJ8IUJHyIuI0qvWUjcsZbfzpXiGJL8A6a69I3"></div>
+        <div class="config-group"><label>Base URL</label><input type="text" id="base-url"
+                value="https://suimi-api.zeabur.app/v1"></div>
+        <div class="config-group"><label>Model</label><input type="text" id="model-name" value="z-ai/glm4.7"></div>
+        <div class="config-group"><label>System Prompt</label><textarea id="system-prompt"
+                rows="4">你是一个支持 Markdown、代码、公式、图片和 Mermaid 图表的超能助手。</textarea></div>
     </div>
 
     <div class="main-chat">
         <div id="chat-window">
-            <div class="message ai-message">你好！我是你的专属 AI 助手。我已经准备好回答你的任何问题了。</div>
+            <div class="message ai-message">你好！我是 Ultra 版 AI 助手。我支持以下渲染：<br>
+                ✅ **Markdown** 内容<br>
+                ✅ **代码高亮** (Python, JS, etc.)<br>
+                ✅ **LaTeX 公式** $E = mc^2$<br>
+                ✅ **Mermaid 流程图**<br>
+                ✅ **图片展示**</div>
         </div>
-
         <div class="input-container">
             <div class="input-wrapper">
-                <textarea id="user-input" placeholder="输入消息（Shift + Enter 换行）..." rows="1"></textarea>
+                <textarea id="user-input" placeholder="输入消息..." rows="1"></textarea>
                 <button id="send-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+                    </svg>
                 </button>
             </div>
         </div>
     </div>
 
     <script>
+        // 配置 Marked.js
+        marked.setOptions({
+            highlight: function (code, lang) {
+                const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                return hljs.highlight(code, { language }).value;
+            },
+            langPrefix: 'hljs language-'
+        });
+
         const chatWindow = document.getElementById('chat-window');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
         let messageHistory = [];
 
-        // 初始化从本地存储加载配置
-        const configFields = ['api-key', 'base-url', 'model-name', 'system-prompt'];
-        configFields.forEach(id => {
-            const saved = localStorage.getItem(id);
-            if (saved) document.getElementById(id).value = saved;
-            document.getElementById(id).addEventListener('change', (e) => localStorage.setItem(id, e.target.value));
-        });
-
         function appendMessage(role, content) {
             const div = document.createElement('div');
             div.className = `message ${role === 'user' ? 'user-message' : 'ai-message'}`;
-            div.textContent = content;
             chatWindow.appendChild(div);
+            updateMessageContent(div, content);
             chatWindow.scrollTop = chatWindow.scrollHeight;
             return div;
+        }
+
+        function updateMessageContent(div, content) {
+            // 处理 Markdown 渲染
+            div.innerHTML = marked.parse(content);
+
+            // 处理数学公式
+            renderMathInElement(div, {
+                delimiters: [
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false }
+                ],
+                throwOnError: false
+            });
+
+            // 处理 Mermaid 图表
+            const mermaidDivs = div.querySelectorAll('pre code.language-mermaid');
+            mermaidDivs.forEach(m => {
+                const p = m.parentElement;
+                const chart = m.textContent;
+                const mermaidId = 'mermaid-' + Math.random().toString(36).substr(2, 9);
+                const container = document.createElement('div');
+                container.className = 'mermaid';
+                container.id = mermaidId;
+                p.parentNode.replaceChild(container, p);
+                mermaid.render(mermaidId + '-svg', chart).then(({ svg }) => {
+                    container.innerHTML = svg;
+                });
+            });
         }
 
         async function sendMessage() {
             const text = userInput.value.trim();
             if (!text) return;
+            userInput.value = ''; userInput.style.height = 'auto';
 
-            const config = {
-                apiKey: document.getElementById('api-key').value,
-                baseUrl: document.getElementById('base-url').value,
-                model: document.getElementById('model-name').value
-            };
-
-            userInput.value = '';
-            userInput.style.height = 'auto';
-            
-            // 维护上下文
             if (messageHistory.length === 0) {
                 messageHistory.push({ role: 'system', content: document.getElementById('system-prompt').value });
             }
             messageHistory.push({ role: 'user', content: text });
-            
             appendMessage('user', text);
 
-            const aiDiv = appendMessage('assistant', '...');
-            aiDiv.textContent = '';
-            
+            const aiDiv = appendMessage('assistant', '思考中...');
+            let fullContent = '';
+
             try {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ messages: messageHistory, config })
+                    body: JSON.stringify({
+                        messages: messageHistory,
+                        config: {
+                            apiKey: document.getElementById('api-key').value,
+                            baseUrl: document.getElementById('base-url').value,
+                            model: document.getElementById('model-name').value
+                        }
+                    })
                 });
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
-                let fullContent = '';
-
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
-
                     const chunk = decoder.decode(value);
                     const lines = chunk.split('\n');
-                    
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
                             const dataStr = line.slice(6);
                             if (dataStr === '[DONE]') break;
-                            try {
-                                const data = JSON.parse(dataStr);
-                                if (data.content) {
-                                    fullContent += data.content;
-                                    aiDiv.textContent = fullContent;
-                                    chatWindow.scrollTop = chatWindow.scrollHeight;
-                                }
-                                if (data.error) {
-                                    aiDiv.textContent = '❌ 错误: ' + data.error;
-                                }
-                            } catch (e) {}
+                            const data = JSON.parse(dataStr);
+                            if (data.content) {
+                                fullContent += data.content;
+                                updateMessageContent(aiDiv, fullContent);
+                                chatWindow.scrollTop = chatWindow.scrollHeight;
+                            }
                         }
                     }
                 }
                 messageHistory.push({ role: 'assistant', content: fullContent });
-            } catch (err) {
-                aiDiv.textContent = '❌ 网络请求失败，请检查配置。';
+                // 最终渲染一次，确保全图表加载
+                updateMessageContent(aiDiv, fullContent);
+            } catch (e) {
+                aiDiv.textContent = '❌ 错误: ' + e.message;
             }
         }
 
         sendBtn.addEventListener('click', sendMessage);
-        userInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-
-        // 自动增高文本框
-        userInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
-
+        userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+        userInput.addEventListener('input', function () { this.style.height = 'auto'; this.style.height = (this.scrollHeight) + 'px'; });
     </script>
 </body>
+
 </html>
