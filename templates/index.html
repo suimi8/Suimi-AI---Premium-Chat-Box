@@ -329,6 +329,27 @@
 
         // --- 初始化 & 加载历史列表 ---
         async function loadSessions() {
+            // --- 新增：解析 URL 参数以适配 NewAPI ---
+            const params = new URLSearchParams(window.location.search);
+            const urlKey = params.get('key');
+            const urlAddress = params.get('address');
+            const urlModel = params.get('model');
+
+            if (urlKey) {
+                document.getElementById('api-key').value = urlKey;
+                localStorage.setItem('api-key', urlKey);
+            }
+            if (urlAddress) {
+                // 处理地址末尾的 /v1
+                const cleanAddr = urlAddress.endsWith('/v1') ? urlAddress : urlAddress + '/v1';
+                document.getElementById('base-url').value = cleanAddr;
+                localStorage.setItem('base-url', cleanAddr);
+            }
+            if (urlModel) {
+                document.getElementById('model-name').value = urlModel;
+                localStorage.setItem('model-name', urlModel);
+            }
+
             const res = await fetch('/api/sessions');
             const sessions = await res.json();
             historyList.innerHTML = '';
@@ -473,6 +494,16 @@
 
         userInput.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
         sendBtn.onclick = sendMessage;
+        // 配置发生变化时保存到本地
+        ['api-key', 'base-url', 'model-name'].forEach(id => {
+            document.getElementById(id).onchange = (e) => localStorage.setItem(id, e.target.value);
+            // 初始加载本地存储（如果没有 URL 参数的话）
+            const saved = localStorage.getItem(id);
+            if (saved && !new URLSearchParams(window.location.search).get(id === 'api-key' ? 'key' : (id === 'base-url' ? 'address' : 'model'))) {
+                document.getElementById(id).value = saved;
+            }
+        });
+
         loadSessions().then(() => switchSession(currentSessionId));
     </script>
 </body>
